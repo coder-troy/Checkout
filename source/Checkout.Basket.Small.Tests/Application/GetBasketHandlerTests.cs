@@ -38,8 +38,11 @@ namespace Checkout.Basket.Api.Small.Tests.Application
         {
             // Arrange
             Basket expectedBasket = null;
+            
             _basketRepository
-                .Setup(m => m.Load(It.Is<Basket>(b => b.Id == _message.SessionId))).Callback((Basket b) => expectedBasket = b);
+                .Setup(m => m.Load(It.Is<Basket>(b => b.Id == _message.SessionId)))
+                .Callback((Basket b) => expectedBasket = b)
+                .ReturnsAsync(true);
             
             expectedBasket?.LoadItems(new Basket.Item(new ProductId("ABC")));
             

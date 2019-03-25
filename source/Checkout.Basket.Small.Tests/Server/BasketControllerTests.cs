@@ -197,7 +197,7 @@ namespace Checkout.Basket.Api.Small.Tests
         public async Task DeleteAll_Returns_BadRequest_With_SessionId()
         {
             // Act
-            var result = await _sut.DeleteAll(SessionId);
+            var result = await _sut.DeleteAll("");
 
             // Assert
             var badRequestObjectResult = Assert.IsAssignableFrom<BadRequestObjectResult>(result);

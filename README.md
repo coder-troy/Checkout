@@ -20,6 +20,7 @@ The Checkout.Basket.Domain, is where all the aggregate roots are defined, like t
 The Product is what I like to call a Shadow Aggregate, this means that it is replicated from another bounded context microservice asynchronously to the basket service. The object is no way complete, but for the simplicity of this test, I have not defined any fields, but something like unit cost would be valid. 
 
 ## Future Improvements
+- Improve the naming of services and functions.
 - Implement event sourcing into the basket, this would then be used to show how users interacts with their baskets.
 - Convert this project to use AWS Lambdas, ApiGateway and DynamoDB.
 - Implement the product shadowing with lambdas from the product bounded context.

@@ -35,13 +35,25 @@ namespace Checkout.Basket.Api.Small.Tests
         }
 
         [Fact]
+        public async Task Get_Returns_BadRequest_With_SessionId()
+        {
+            // Act
+            var result = await _sut.Get("");
+
+            // Assert
+            var badRequestObjectResult = Assert.IsAssignableFrom<BadRequestObjectResult>(result);
+
+            Assert.Equal(BadRequestMessages.InvalidSessionId, badRequestObjectResult.Value);
+        }
+
+        [Fact]
         public async Task Get_Returns_Ok()
         {
             // Arrange
             _getBasketHandler
                 .Setup(m => m.Handle(It.IsAny<GetBasket>()))
                 .ReturnsAsync((GetBasket msg) => new Basket(msg.SessionId));
-            
+
             // Act
             var result = await _sut.Get(SessionId);
 
@@ -52,22 +64,67 @@ namespace Checkout.Basket.Api.Small.Tests
         }
 
         [Fact]
-        public async Task Put_Will_Return_Bad_Request()
+        public async Task Put_Returns_BasRequest_With_SessionId()
         {
-            // Arrange
-            _upsertBasketItemHandler
-                .Setup(m => m.Handle(It.IsAny<UpsertBasketItem>()))
-                .ThrowsAsync(new ProductNotFoundException(new ProductId(ProductId)));
-
             // Act
-            var result = await _sut.Put(SessionId, new PutRequest());
+            var result = await _sut.Put("", new PutRequest
+            {
+                ProductId = "ABC",
+                Quantity = 1
+            });
 
             // Assert
-            Assert.IsAssignableFrom<BadRequestObjectResult>(result);
+            var badRequestObjectResult = Assert.IsAssignableFrom<BadRequestObjectResult>(result);
+
+            Assert.Equal(BadRequestMessages.InvalidSessionId, badRequestObjectResult.Value);
         }
 
         [Fact]
-        public async Task Put_Will_Return_OK()
+        public async Task Put_Return_BadRequest_With_ProductId()
+        {
+            // Act
+            var result = await _sut.Put(SessionId, new PutRequest
+            {
+                ProductId = "",
+                Quantity = 1
+            });
+
+            // Assert
+            var badRequestObjectResult = Assert.IsAssignableFrom<BadRequestObjectResult>(result);
+
+            Assert.Equal(BadRequestMessages.InvalidProductId, badRequestObjectResult.Value);
+        }
+
+        [Fact]
+        public async Task Put_Return_BadRequest_With_Quantity()
+        {
+            // Act
+            var result = await _sut.Put(SessionId, new PutRequest
+            {
+                ProductId = "ABC",
+                Quantity = 0
+            });
+
+            // Assert
+            var badRequestObjectResult = Assert.IsAssignableFrom<BadRequestObjectResult>(result);
+
+            Assert.Equal(BadRequestMessages.InvalidQuantity, badRequestObjectResult.Value);
+        }
+
+        [Fact]
+        public async Task Put_Return_BadRequest_With_Message()
+        {
+            // Act
+            var result = await _sut.Put(SessionId, null);
+
+            // Assert
+            var badRequestObjectResult = Assert.IsAssignableFrom<BadRequestObjectResult>(result);
+
+            Assert.Equal(BadRequestMessages.InvalidBody, badRequestObjectResult.Value);
+        }
+
+        [Fact]
+        public async Task Put_Returns_OK()
         {
             // Arrange
             _upsertBasketItemHandler
@@ -75,25 +132,34 @@ namespace Checkout.Basket.Api.Small.Tests
                 .Returns(Task.CompletedTask);
 
             // Act
-            var result = await _sut.Put(SessionId, new PutRequest());
+            var result = await _sut.Put(SessionId, new PutRequest {ProductId = "ABC", Quantity = 1});
 
             // Assert
             Assert.IsAssignableFrom<OkResult>(result);
         }
 
         [Fact]
-        public async Task DeleteSingle_Returns_Ok()
+        public async Task DeleteSingle_Returns_BadRequest_With_SessionId()
         {
-            // Arrange
-            _removeBasketItemHandler
-                .Setup(m => m.Handle(It.IsAny<RemoveBasketItem>()))
-                .Returns(Task.CompletedTask);
-
             // Act
-            var result = await _sut.DeleteSingle(SessionId, ProductId);
+            var result = await _sut.DeleteSingle("", ProductId);
 
             // Assert
-            Assert.IsAssignableFrom<OkResult>(result);
+            var badRequestObjectResult = Assert.IsAssignableFrom<BadRequestObjectResult>(result);
+
+            Assert.Equal(BadRequestMessages.InvalidSessionId, badRequestObjectResult.Value);
+        }
+
+        [Fact]
+        public async Task DeleteSingle_Returns_BadRequest_With_ProductId()
+        {
+            // Act
+            var result = await _sut.DeleteSingle(SessionId, "");
+
+            // Assert
+            var badRequestObjectResult = Assert.IsAssignableFrom<BadRequestObjectResult>(result);
+
+            Assert.Equal(BadRequestMessages.InvalidProductId, badRequestObjectResult.Value);
         }
 
         [Fact]
@@ -113,18 +179,30 @@ namespace Checkout.Basket.Api.Small.Tests
         }
 
         [Fact]
-        public async Task DeleteAll_Returns_Ok()
+        public async Task DeleteSingle_Returns_Ok()
         {
             // Arrange
-            _removeAllBasketItemsHandler
-                .Setup(m => m.Handle(It.IsAny<RemoveAllBasketItems>()))
+            _removeBasketItemHandler
+                .Setup(m => m.Handle(It.IsAny<RemoveBasketItem>()))
                 .Returns(Task.CompletedTask);
 
+            // Act
+            var result = await _sut.DeleteSingle(SessionId, ProductId);
+
+            // Assert
+            Assert.IsAssignableFrom<OkResult>(result);
+        }
+
+        [Fact]
+        public async Task DeleteAll_Returns_BadRequest_With_SessionId()
+        {
             // Act
             var result = await _sut.DeleteAll(SessionId);
 
             // Assert
-            Assert.IsAssignableFrom<OkResult>(result);
+            var badRequestObjectResult = Assert.IsAssignableFrom<BadRequestObjectResult>(result);
+            
+            Assert.Equal(BadRequestMessages.InvalidSessionId, badRequestObjectResult.Value);
         }
         
         [Fact]
@@ -140,7 +218,23 @@ namespace Checkout.Basket.Api.Small.Tests
 
             // Assert
             var statusCodeResult = Assert.IsAssignableFrom<StatusCodeResult>(result);
+            
             Assert.Equal(500, statusCodeResult.StatusCode);
+        }
+
+        [Fact]
+        public async Task DeleteAll_Returns_Ok()
+        {
+            // Arrange
+            _removeAllBasketItemsHandler
+                .Setup(m => m.Handle(It.IsAny<RemoveAllBasketItems>()))
+                .Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _sut.DeleteAll(SessionId);
+
+            // Assert
+            Assert.IsAssignableFrom<OkResult>(result);
         }
     }
 }
